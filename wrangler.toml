@@ -4,4 +4,4 @@ pages_build_output_dir = "public"
 
 [[kv_namespaces]]
 binding = "FOCUSMAIL_KV"
-id = "YOUR_KV_NAMESPACE_ID"
+id = "683c53a2fa9a4a80a414a0f25dd1c730"
