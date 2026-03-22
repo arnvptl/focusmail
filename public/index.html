@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusMail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --border: #e2e0d8;
+  --text: #1a1916;
+  --muted: #8a8880;
+  --accent: #2563eb;
+  --accent-light: #eff6ff;
+  --out-bg: #1a1916;
+  --out-text: #f5f4f0;
+  --in-bg: #ffffff;
+  --radius: 14px;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%; overflow: hidden;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── SCREENS ─── */
+#screen-login,
+#screen-setup,
+#screen-chat {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.25s;
+}
+
+.hidden { opacity: 0; pointer-events: none !important; }
+
+/* ─── LOGIN ─── */
+#screen-login { flex-direction: column; gap: 1.5rem; padding: 2rem; }
+
+.brand { text-align: center; }
+.brand-name {
+  font-size: 1.75rem; font-weight: 600; letter-spacing: -0.5px;
+  color: var(--text);
+}
+.brand-name span { color: var(--accent); }
+.brand-sub {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--muted);
+  letter-spacing: 1px; text-transform: uppercase; margin-top: 4px;
+}
+
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 2rem;
+  width: 100%; max-width: 360px;
+  text-align: center;
+}
+
+.login-card p {
+  font-size: 0.875rem; color: var(--muted); line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.btn-google {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--text); color: var(--bg);
+  border: none; border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font); font-size: 0.9rem; font-weight: 500;
+  cursor: pointer; text-decoration: none;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn-google:hover { opacity: 0.85; transform: translateY(-1px); }
+.btn-google:active { transform: scale(0.98); }
+
+.g-icon { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* ─── SETUP ─── */
+#screen-setup { flex-direction: column; gap: 1rem; padding: 1.5rem; }
+
+.setup-inner { width: 100%; max-width: 380px; }
+
+.setup-header { margin-bottom: 1.25rem; }
+.setup-header h2 { font-size: 1.2rem; font-weight: 600; }
+.setup-header p { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+
+.field-label {
+  font-family: var(--mono); font-size: 0.65rem; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--muted); margin-bottom: 6px;
+}
+
+.input-row { display: flex; gap: 8px; }
+
+input[type="email"], input[type="text"] {
+  flex: 1; padding: 0.65rem 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: var(--mono); font-size: 0.85rem; color: var(--text);
+  outline: none; transition: border-color 0.15s;
+}
+input:focus { border-color: var(--accent); }
+input::placeholder { color: var(--muted); }
+
+.btn-primary {
+  background: var(--text); color: var(--bg);
+  border: none; border-radius: 10px;
+  padding: 0.65rem 1.1rem;
+  font-family: var(--font); font-size: 0.875rem; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn-primary:hover { opacity: 0.8; }
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+.user-pill {
+  font-family: var(--mono); font-size: 0.72rem; color: var(--muted);
+  display: flex; align-items: center; gap: 6px;
+}
+.user-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
+
+/* ─── CHAT ─── */
+#screen-chat {
+  flex-direction: column; align-items: stretch;
+  justify-content: flex-start;
+}
+
+/* Header */
+.chat-header {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 12px;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.btn-back {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 1.1rem; padding: 4px 6px;
+  border-radius: 7px; transition: background 0.15s, color 0.15s;
+}
+.btn-back:hover { background: var(--surface2); color: var(--text); }
+
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--text); color: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 0.85rem; flex-shrink: 0;
+}
+
+.hdr-info { flex: 1; min-width: 0; }
+.hdr-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hdr-email { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.hdr-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.btn-refresh {
+  background: none; border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px 10px;
+  font-family: var(--mono); font-size: 0.65rem; color: var(--muted);
+  cursor: pointer; transition: border-color 0.15s, color 0.15s;
+  display: flex; align-items: center; gap: 5px;
+}
+.btn-refresh:hover { border-color: var(--text); color: var(--text); }
+.btn-refresh.spinning .refresh-icon { animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Messages */
+#msg-list {
+  flex: 1; overflow-y: auto;
+  padding: 1rem;
+  display: flex; flex-direction: column; gap: 4px;
+  scroll-behavior: smooth;
+}
+#msg-list::-webkit-scrollbar { width: 3px; }
+#msg-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.day-sep {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0.5rem 0;
+}
+.day-sep span {
+  font-family: var(--mono); font-size: 0.6rem; color: var(--muted);
+  letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap;
+}
+.day-sep::before, .day-sep::after { content:''; flex:1; height:1px; background: var(--border); }
+
+.msg-row {
+  display: flex;
+  animation: fadeUp 0.2s ease;
+}
+@keyframes fadeUp { from { opacity:0; transform: translateY(5px); } to { opacity:1; } }
+.msg-row.out { justify-content: flex-end; }
+.msg-row.in  { justify-content: flex-start; }
+
+.bubble-wrap { max-width: 74%; display: flex; flex-direction: column; }
+.msg-row.out .bubble-wrap { align-items: flex-end; }
+.msg-row.in  .bubble-wrap { align-items: flex-start; }
+
+.subj-tag {
+  font-family: var(--mono); font-size: 0.58rem; color: var(--muted);
+  margin-bottom: 2px; padding: 0 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.bubble {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.875rem; line-height: 1.55;
+  white-space: pre-wrap; word-break: break-word;
+  max-width: 100%;
+}
+.msg-row.out .bubble {
+  background: var(--out-bg); color: var(--out-text);
+  border-radius: 14px 14px 4px 14px;
+}
+.msg-row.in .bubble {
+  background: var(--in-bg); color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 14px 14px 14px 4px;
+}
+
+.msg-time {
+  font-family: var(--mono); font-size: 0.58rem; color: var(--muted);
+  margin-top: 3px; padding: 0 4px;
+}
+
+.new-msg-badge {
+  align-self: center;
+  background: var(--accent-light); color: var(--accent);
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.8px;
+  padding: 2px 10px; border-radius: 20px; margin: 4px 0;
+}
+
+/* States */
+.state-box {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0.6rem; color: var(--muted);
+  font-family: var(--mono); font-size: 0.75rem; text-align: center;
+  padding: 2rem;
+}
+.spinner-sm {
+  width: 22px; height: 22px;
+  border: 2px solid var(--border);
+  border-top-color: var(--text);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Reply bar */
+.reply-bar {
+  flex-shrink: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+}
+.reply-to-label {
+  font-family: var(--mono); font-size: 0.62rem; color: var(--muted);
+  margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.reply-row { display: flex; gap: 8px; align-items: flex-end; }
+
+textarea#reply-input {
+  flex: 1; resize: none;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+  font-family: var(--font); font-size: 0.875rem; color: var(--text);
+  min-height: 40px; max-height: 120px;
+  line-height: 1.5; outline: none;
+  transition: border-color 0.15s;
+}
+textarea#reply-input:focus { border-color: var(--accent); }
+textarea#reply-input::placeholder { color: var(--muted); }
+
+.btn-send {
+  width: 40px; height: 40px; flex-shrink: 0;
+  background: var(--text); color: var(--bg);
+  border: none; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+}
+.btn-send:hover { opacity: 0.8; }
+.btn-send:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-send svg { width: 16px; height: 16px; fill: currentColor; }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%) translateY(8px);
+  background: var(--text); color: var(--bg);
+  font-family: var(--mono); font-size: 0.72rem;
+  padding: 6px 14px; border-radius: 8px;
+  opacity: 0; transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none; z-index: 99; white-space: nowrap;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login">
+  <div class="brand">
+    <div class="brand-name">Focus<span>Mail</span></div>
+    <div class="brand-sub">one conversation · zero noise</div>
+  </div>
+  <div class="login-card">
+    <p>Connect your Gmail account to get started. Your data stays in your own Cloudflare deployment.</p>
+    <a href="/api/auth" class="btn-google">
+      <svg class="g-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Sign in with Google
+    </a>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="screen-setup" class="hidden">
+  <div class="setup-inner">
+    <div class="setup-header">
+      <h2>Who do you want to focus on?</h2>
+      <p>Enter the email address to monitor</p>
+    </div>
+    <div class="field-label">Sender's email address</div>
+    <div class="input-row">
+      <input type="email" id="sender-input" placeholder="friend@example.com" />
+      <button class="btn-primary" id="btn-load" onclick="loadThread()">Load →</button>
+    </div>
+    <div style="margin-top:1rem;">
+      <div class="user-pill">
+        <div class="dot"></div>
+        <span id="my-email-label">Signed in</span>
+        <span style="margin-left:auto;">
+          <a href="/api/logout" onclick="doLogout(event)" style="color:var(--muted);font-size:0.65rem;font-family:var(--mono)">sign out</a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="screen-chat" class="hidden">
+  <div class="chat-header">
+    <button class="btn-back" onclick="goBack()">←</button>
+    <div class="avatar" id="hdr-avatar">?</div>
+    <div class="hdr-info">
+      <div class="hdr-name" id="hdr-name">—</div>
+      <div class="hdr-email" id="hdr-email">—</div>
+    </div>
+    <div class="hdr-right">
+      <button class="btn-refresh" id="btn-refresh" onclick="refreshMessages()">
+        <span class="refresh-icon">↻</span>
+        <span id="refresh-label">Refresh</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="msg-list"></div>
+
+  <div class="reply-bar">
+    <div class="reply-to-label" id="reply-to-label">↩ Re: …</div>
+    <div class="reply-row">
+      <textarea id="reply-input" placeholder="Type a reply… (Enter to send, Shift+Enter for newline)"
+        oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+      <button class="btn-send" id="btn-send" onclick="sendReply()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── State ──
+const S = {
+  myEmail: null,
+  targetEmail: null,
+  messages: [],
+  knownIds: new Set(),
+  newCount: 0,
+  sending: false,
+  latestThread: null,
+  latestSubject: '',
+  refreshTimer: null,
+  autoRefreshInterval: null
+};
+
+// ── Screens ──
+function show(id) {
+  ['screen-login','screen-setup','screen-chat'].forEach(s => {
+    document.getElementById(s).classList.toggle('hidden', s !== id);
+  });
+}
+
+// ── Init ──
+async function init() {
+  const params = new URLSearchParams(location.search);
+  if (params.get('error')) toast('Auth failed: ' + params.get('error'));
+
+  try {
+    const res = await fetch('/api/me');
+    if (res.status === 401) { show('screen-login'); return; }
+    const data = await res.json();
+    S.myEmail = data.email;
+    document.getElementById('my-email-label').textContent = data.email;
+    show('screen-setup');
+  } catch {
+    show('screen-login');
+  }
+}
+
+// ── Load thread ──
+async function loadThread() {
+  const val = document.getElementById('sender-input').value.trim().toLowerCase();
+  if (!val || !val.includes('@')) { document.getElementById('sender-input').focus(); return; }
+  S.targetEmail = val;
+
+  // Update header
+  const name = val.split('@')[0];
+  document.getElementById('hdr-name').textContent = name;
+  document.getElementById('hdr-email').textContent = val;
+  document.getElementById('hdr-avatar').textContent = name[0].toUpperCase();
+  document.getElementById('reply-to-label').textContent = '↩ Loading…';
+
+  show('screen-chat');
+  document.getElementById('msg-list').innerHTML = `
+    <div class="state-box"><div class="spinner-sm"></div><span>Fetching messages…</span></div>`;
+
+  await fetchMessages(false);
+  startAutoRefresh();
+}
+
+// ── Fetch messages ──
+async function fetchMessages(isRefresh) {
+  try {
+    const res = await fetch(`/api/messages?from=${encodeURIComponent(S.targetEmail)}`);
+    if (!res.ok) throw new Error('Failed to fetch');
+    const { messages } = await res.json();
+
+    const newOnes = messages.filter(m => !S.knownIds.has(m.id));
+    newOnes.forEach(m => S.knownIds.add(m.id));
+
+    if (isRefresh && newOnes.length > 0) {
+      S.newCount += newOnes.length;
+      updateTitle();
+      playSound();
+      toast(`${newOnes.length} new message${newOnes.length > 1 ? 's' : ''}`);
+    }
+
+    S.messages = messages;
+
+    // Set thread info from latest message
+    if (messages.length) {
+      const last = messages[messages.length - 1];
+      S.latestThread = last.threadId;
+      S.latestSubject = last.subject || '(no subject)';
+      document.getElementById('reply-to-label').textContent = `↩ Re: ${S.latestSubject}`;
+    }
+
+    renderMessages(newOnes.map(m => m.id));
+  } catch (e) {
+    if (!isRefresh) {
+      document.getElementById('msg-list').innerHTML =
+        `<div class="state-box"><span>⚠ ${e.message}</span></div>`;
+    } else {
+      toast('Refresh failed');
+    }
+  }
+}
+
+// ── Render ──
+function renderMessages(newIds = []) {
+  const list = document.getElementById('msg-list');
+
+  if (!S.messages.length) {
+    list.innerHTML = `<div class="state-box"><span>No messages found from<br>${S.targetEmail}</span></div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  let lastDay = '';
+
+  S.messages.forEach(msg => {
+    const isOut = !msg.from.toLowerCase().includes(S.targetEmail.toLowerCase());
+    const d = new Date(msg.timestamp || msg.date);
+    const dayKey = d.toDateString();
+
+    if (dayKey !== lastDay) {
+      lastDay = dayKey;
+      const sep = document.createElement('div');
+      sep.className = 'day-sep';
+      sep.innerHTML = `<span>${d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>`;
+      list.appendChild(sep);
+    }
+
+    if (newIds.includes(msg.id)) {
+      const badge = document.createElement('div');
+      badge.className = 'new-msg-badge';
+      badge.textContent = '● new';
+      list.appendChild(badge);
+    }
+
+    const row = document.createElement('div');
+    row.className = `msg-row ${isOut ? 'out' : 'in'}`;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'bubble-wrap';
+
+    if (msg.subject) {
+      const subj = document.createElement('div');
+      subj.className = 'subj-tag';
+      subj.textContent = msg.subject;
+      wrap.appendChild(subj);
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = cleanBody(msg.body);
+    wrap.appendChild(bubble);
+
+    const time = document.createElement('div');
+    time.className = 'msg-time';
+    time.textContent = d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    wrap.appendChild(time);
+
+    row.appendChild(wrap);
+    list.appendChild(row);
+  });
+
+  list.scrollTop = list.scrollHeight;
+}
+
+function cleanBody(text) {
+  if (!text) return '(empty)';
+  return text
+    .replace(/\r\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+    .slice(0, 800) + (text.length > 800 ? '\n…' : '');
+}
+
+// ── Send reply ──
+async function sendReply() {
+  const input = document.getElementById('reply-input');
+  const body = input.value.trim();
+  if (!body || S.sending) return;
+
+  S.sending = true;
+  document.getElementById('btn-send').disabled = true;
+  input.disabled = true;
+
+  try {
+    const res = await fetch('/api/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: S.targetEmail,
+        subject: S.latestSubject,
+        body,
+        threadId: S.latestThread,
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Send failed');
+    }
+
+    // Optimistic update
+    const fakeMsg = {
+      id: 'opt-' + Date.now(),
+      threadId: S.latestThread,
+      subject: 'Re: ' + S.latestSubject,
+      from: S.myEmail,
+      to: S.targetEmail,
+      date: new Date().toUTCString(),
+      timestamp: Date.now(),
+      body,
+    };
+    S.messages.push(fakeMsg);
+    S.knownIds.add(fakeMsg.id);
+    renderMessages();
+
+    input.value = '';
+    autoResize(input);
+    toast('Sent ✓');
+  } catch (e) {
+    toast('Failed: ' + e.message);
+  } finally {
+    S.sending = false;
+    document.getElementById('btn-send').disabled = false;
+    input.disabled = false;
+    input.focus();
+  }
+}
+
+// ── Refresh ──
+async function refreshMessages() {
+  const btn = document.getElementById('btn-refresh');
+  btn.classList.add('spinning');
+  document.getElementById('refresh-label').textContent = '…';
+  await fetchMessages(true);
+  btn.classList.remove('spinning');
+  document.getElementById('refresh-label').textContent = 'Refresh';
+}
+
+function startAutoRefresh() {
+  clearInterval(S.autoRefreshInterval);
+  S.autoRefreshInterval = setInterval(() => fetchMessages(true), 30_000);
+}
+
+// ── Navigation ──
+function goBack() {
+  clearInterval(S.autoRefreshInterval);
+  S.messages = []; S.knownIds = new Set(); S.newCount = 0;
+  updateTitle();
+  show('screen-setup');
+}
+
+async function doLogout(e) {
+  e.preventDefault();
+  await fetch('/api/logout', { method: 'POST' });
+  location.href = '/';
+}
+
+// ── Helpers ──
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(); }
+}
+
+function toast(msg, ms = 2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function updateTitle() {
+  document.title = S.newCount > 0
+    ? `(${S.newCount}) FocusMail`
+    : 'FocusMail';
+}
+
+function playSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine'; o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.12);
+    g.gain.setValueAtTime(0.15, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    o.start(); o.stop(ctx.currentTime + 0.35);
+  } catch {}
+}
+
+window.addEventListener('focus', () => { S.newCount = 0; updateTitle(); });
+document.getElementById('sender-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadThread();
+});
+
+init();
+</script>
+</body>
+</html>

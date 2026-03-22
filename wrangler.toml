@@ -1,0 +1,7 @@
+name = "focusmail"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "public"
+
+[[kv_namespaces]]
+binding = "FOCUSMAIL_KV"
+id = "YOUR_KV_NAMESPACE_ID"
