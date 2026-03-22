@@ -551,11 +551,55 @@ function renderMessages(newIds = []) {
 
 function cleanBody(text) {
   if (!text) return '(empty)';
-  return text
-    .replace(/\r\n/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim()
-    .slice(0, 800) + (text.length > 800 ? '\n…' : '');
+
+  let s = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  // Split into lines and drop everything from the first quoted-reply marker
+  const lines = s.split('\n');
+  const cutPatterns = [
+    /^On .+ wrote:$/,           // "On Mon, Mar 10 ... wrote:"
+    /^Le .+ a écrit\s*:$/i,     // French variant
+    /^Am .+ schrieb\s*:$/i,     // German variant
+    /^>{1}/,                     // any line starting with >
+    /^-{3,}\s*Original Message/i,
+    /^-{3,}\s*Forwarded/i,
+    /^From:\s+/,                 // inline forwarded headers
+  ];
+
+  // Also handle multi-line "On ... Arnav wrote:" (the "On" is one line, "wrote:" is later)
+  // Find the first line index that signals a quote block
+  let cutAt = lines.length;
+  let onLineIdx = -1;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    // "On <date>, <name>" opener — might span multiple lines; look for closing "wrote:"
+    if (/^On .+/.test(line) && onLineIdx === -1) {
+      onLineIdx = i;
+    }
+    if (onLineIdx !== -1 && /wrote\s*:\s*$/.test(line)) {
+      cutAt = onLineIdx;
+      break;
+    }
+    // Reset if too many lines passed without finding "wrote:"
+    if (onLineIdx !== -1 && i - onLineIdx > 4) onLineIdx = -1;
+
+    // Direct cut patterns
+    if (cutPatterns.slice(1).some(p => p.test(line))) {
+      cutAt = i;
+      break;
+    }
+  }
+
+  const kept = lines.slice(0, cutAt);
+
+  // Drop trailing empty lines
+  while (kept.length && !kept[kept.length - 1].trim()) kept.pop();
+
+  let result = kept.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+
+  return result.slice(0, 800) + (result.length > 800 ? '\n…' : '');
 }
 
 // ── Send reply ──
