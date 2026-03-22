@@ -10,16 +10,22 @@ async function gmailFetch(path, accessToken) {
   return res.json();
 }
 
+// Properly decode base64url → UTF-8 (fixes â€™ â€" mojibake from plain atob)
+function decodeBase64Utf8(data) {
+  if (!data) return "";
+  try {
+    const base64 = data.replace(/-/g, "+").replace(/_/g, "/");
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder("utf-8").decode(bytes);
+  } catch {
+    return "";
+  }
+}
+
 function decodeBody(payload) {
-  // Try to get plain text body from parts or direct body
-  const tryDecode = (data) => {
-    if (!data) return "";
-    try {
-      return atob(data.replace(/-/g, "+").replace(/_/g, "/"));
-    } catch {
-      return "";
-    }
-  };
+  const tryDecode = decodeBase64Utf8;
 
   if (payload.parts) {
     const plain = payload.parts.find((p) => p.mimeType === "text/plain");
